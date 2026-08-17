@@ -364,9 +364,17 @@ private fun StatusCard(
 @Composable
 private fun WarningCard(
     message: String,
-    color: Color = MaterialTheme.colorScheme.errorContainer,
+    level: WarningLevel = WarningLevel.Error,
     onClick: (() -> Unit)? = null
 ) {
+    val containerColor = when (level) {
+        WarningLevel.Error -> MaterialTheme.colorScheme.errorContainer
+        WarningLevel.Notice -> MaterialTheme.colorScheme.tertiaryContainer
+    }
+    val contentColor = when (level) {
+        WarningLevel.Error -> MaterialTheme.colorScheme.onErrorContainer
+        WarningLevel.Notice -> MaterialTheme.colorScheme.onTertiaryContainer
+    }
     val content = @Composable {
         Row(
             modifier = Modifier
@@ -376,14 +384,14 @@ private fun WarningCard(
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer
+                color = contentColor
             )
         }
     }
     if (onClick != null) {
-        TonalCard(containerColor = color, onClick = onClick, content = content)
+        TonalCard(containerColor = containerColor, onClick = onClick, content = content)
     } else {
-        TonalCard(containerColor = color, content = content)
+        TonalCard(containerColor = containerColor, content = content)
     }
 }
 

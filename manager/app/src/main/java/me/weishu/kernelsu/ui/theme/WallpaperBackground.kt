@@ -12,6 +12,7 @@ import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -123,8 +124,10 @@ fun wallpaperAlignment(positionX: Float, positionY: Float): BiasAlignment = Bias
 
 fun wallpaperContentScale(cropScale: Float): ContentScale {
     val scale = cropScale.coerceIn(1f, 3f)
-    return ContentScale { sourceSize, destinationSize ->
-        val crop = ContentScale.Crop.computeScaleFactor(sourceSize, destinationSize)
-        ScaleFactor(crop.scaleX * scale, crop.scaleY * scale)
+    return object : ContentScale {
+        override fun computeScaleFactor(srcSize: Size, dstSize: Size): ScaleFactor {
+            val crop = ContentScale.Crop.computeScaleFactor(srcSize, dstSize)
+            return ScaleFactor(crop.scaleX * scale, crop.scaleY * scale)
+        }
     }
 }
