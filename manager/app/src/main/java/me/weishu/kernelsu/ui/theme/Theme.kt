@@ -52,6 +52,11 @@ data class AppSettings(
     val wallpaperPath: String? = null,
     val wallpaperBlur: Float = 0f,
     val wallpaperDim: Float = 0.4f,
+    val wallpaperOpacity: Float = 1f,
+    val wallpaperUiOpacity: Float = 1f,
+    val wallpaperCropScale: Float = 1f,
+    val wallpaperPositionX: Float = 0f,
+    val wallpaperPositionY: Float = 0f,
 )
 
 val PaletteStyle.supportsSpec2025: Boolean
@@ -101,6 +106,11 @@ object ThemeController {
         val wallpaperPath = repo.wallpaperPath.ifBlank { null }
         val wallpaperBlur = repo.wallpaperBlur
         val wallpaperDim = repo.wallpaperDim
+        val wallpaperOpacity = repo.wallpaperOpacity
+        val wallpaperUiOpacity = repo.wallpaperUiOpacity
+        val wallpaperCropScale = repo.wallpaperCropScale
+        val wallpaperPositionX = repo.wallpaperPositionX
+        val wallpaperPositionY = repo.wallpaperPositionY
 
         return AppSettings(
             colorMode,
@@ -110,6 +120,11 @@ object ThemeController {
             wallpaperPath,
             wallpaperBlur,
             wallpaperDim,
+            wallpaperOpacity,
+            wallpaperUiOpacity,
+            wallpaperCropScale,
+            wallpaperPositionX,
+            wallpaperPositionY,
         )
     }
 }

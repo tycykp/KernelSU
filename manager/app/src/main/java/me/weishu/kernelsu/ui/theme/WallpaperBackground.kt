@@ -8,11 +8,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.ScaleFactor
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -21,14 +25,19 @@ import kotlinx.coroutines.withContext
 import me.weishu.kernelsu.ui.util.WallpaperUtils
 
 /**
- * Draws the custom wallpaper as the app-wide background, with an optional blur
- * radius and a dim scrim on top to keep the content readable.
+ * Draws the custom wallpaper as the app-wide background. Cropping is
+ * non-destructive: [cropScale] zooms the image after the initial crop, while
+ * [positionX] and [positionY] choose which part remains visible.
  */
 @Composable
 fun WallpaperBackground(
     path: String,
     blur: Float,
     dim: Float,
+    opacity: Float,
+    cropScale: Float,
+    positionX: Float,
+    positionY: Float,
     isDark: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -47,32 +56,75 @@ fun WallpaperBackground(
         }
     }
 
-    val decoded = bitmap
-    if (decoded != null) {
-        Box(modifier = modifier.fillMaxSize()) {
-            Image(
-                bitmap = decoded.asImageBitmap(),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .blur(blur.dp),
-                contentScale = ContentScale.Crop,
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        if (isDark) Color.Black.copy(alpha = dim.coerceIn(0f, 1f))
-                        else Color.White.copy(alpha = dim.coerceIn(0f, 1f))
-                    )
-            )
-        }
+    bitmap?.let {
+        WallpaperImage(
+            bitmap = it.asImageBitmap(),
+            blur = blur,
+            dim = dim,
+            opacity = opacity,
+            cropScale = cropScale,
+            positionX = positionX,
+            positionY = positionY,
+            isDark = isDark,
+            modifier = modifier,
+        )
     }
 }
 
 @Composable
-fun rememberWallpaperPreview(path: String, maxSize: Int = 512): androidx.compose.ui.graphics.ImageBitmap? {
+fun WallpaperImage(
+    bitmap: ImageBitmap,
+    blur: Float,
+    dim: Float,
+    opacity: Float,
+    cropScale: Float,
+    positionX: Float,
+    positionY: Float,
+    isDark: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(if (isDark) Color.Black else Color.White)
+    ) {
+        Image(
+            bitmap = bitmap,
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(blur.coerceAtLeast(0f).dp)
+                .alpha(opacity.coerceIn(0f, 1f)),
+            alignment = wallpaperAlignment(positionX, positionY),
+            contentScale = wallpaperContentScale(cropScale),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    if (isDark) Color.Black.copy(alpha = dim.coerceIn(0f, 1f))
+                    else Color.White.copy(alpha = dim.coerceIn(0f, 1f))
+                )
+        )
+    }
+}
+
+@Composable
+fun rememberWallpaperPreview(path: String, maxSize: Int = 512): ImageBitmap? {
     return remember(path, maxSize) {
         WallpaperUtils.decodeSampledBitmap(path, maxSize, maxSize)?.asImageBitmap()
+    }
+}
+
+fun wallpaperAlignment(positionX: Float, positionY: Float): BiasAlignment = BiasAlignment(
+    horizontalBias = positionX.coerceIn(-1f, 1f),
+    verticalBias = positionY.coerceIn(-1f, 1f),
+)
+
+fun wallpaperContentScale(cropScale: Float): ContentScale {
+    val scale = cropScale.coerceIn(1f, 3f)
+    return ContentScale { sourceSize, destinationSize ->
+        val crop = ContentScale.Crop.computeScaleFactor(sourceSize, destinationSize)
+        ScaleFactor(crop.scaleX * scale, crop.scaleY * scale)
     }
 }

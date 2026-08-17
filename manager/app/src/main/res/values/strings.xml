@@ -233,6 +233,16 @@
     <string name="settings_wallpaper_blur_summary">Blur radius applied to the wallpaper.</string>
     <string name="settings_wallpaper_dim">Dim</string>
     <string name="settings_wallpaper_dim_summary">Darken or lighten the wallpaper to keep the content readable.</string>
+    <string name="settings_wallpaper_opacity">Image opacity</string>
+    <string name="settings_wallpaper_opacity_summary">Adjust the visibility of the wallpaper image.</string>
+    <string name="settings_wallpaper_ui_opacity">App UI opacity</string>
+    <string name="settings_wallpaper_ui_opacity_summary">Adjust the opacity of cards and other app surfaces.</string>
+    <string name="settings_wallpaper_crop_scale">Crop scale</string>
+    <string name="settings_wallpaper_crop_scale_summary">Zoom in to crop more of the wallpaper.</string>
+    <string name="settings_wallpaper_position_x">Horizontal position</string>
+    <string name="settings_wallpaper_position_x_summary">Move the crop focus from left (-) to right (+).</string>
+    <string name="settings_wallpaper_position_y">Vertical position</string>
+    <string name="settings_wallpaper_position_y_summary">Move the crop focus from top (-) to bottom (+).</string>
     <string name="color_blue">Blue</string>
     <string name="color_red">Red</string>
     <string name="color_green">Green</string>

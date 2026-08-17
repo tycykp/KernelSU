@@ -3,7 +3,6 @@ package me.weishu.kernelsu.ui.screen.colorpalette
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -54,11 +53,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -74,6 +72,7 @@ import me.weishu.kernelsu.ui.component.bottombar.useNavigationRail
 import me.weishu.kernelsu.ui.component.miuix.ScaleDialog
 import me.weishu.kernelsu.ui.theme.LocalEnableBlur
 import me.weishu.kernelsu.ui.theme.keyColorOptions
+import me.weishu.kernelsu.ui.theme.WallpaperImage
 import me.weishu.kernelsu.ui.theme.rememberWallpaperPreview
 import me.weishu.kernelsu.ui.util.BlurredBar
 import me.weishu.kernelsu.ui.util.WallpaperUtils
@@ -142,8 +141,6 @@ fun ColorPaletteScreenMiuix(
         contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         val showScaleDialog = rememberSaveable { mutableStateOf(false) }
-        val showBlurSlider = rememberSaveable { mutableStateOf(false) }
-        val showDimSlider = rememberSaveable { mutableStateOf(false) }
 
         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
             LazyColumn(
@@ -169,6 +166,11 @@ fun ColorPaletteScreenMiuix(
                         wallpaperPath = uiState.wallpaperPath.ifEmpty { null },
                         wallpaperBlur = uiState.wallpaperBlur,
                         wallpaperDim = uiState.wallpaperDim,
+                        wallpaperOpacity = uiState.wallpaperOpacity,
+                        wallpaperUiOpacity = uiState.wallpaperUiOpacity,
+                        wallpaperCropScale = uiState.wallpaperCropScale,
+                        wallpaperPositionX = uiState.wallpaperPositionX,
+                        wallpaperPositionY = uiState.wallpaperPositionY,
                     )
                     Spacer(modifier = Modifier.height(72.dp))
 
@@ -333,11 +335,15 @@ fun ColorPaletteScreenMiuix(
                                 ) {
                                     val preview = rememberWallpaperPreview(wallpaperPath)
                                     if (preview != null) {
-                                        Image(
+                                        WallpaperImage(
                                             bitmap = preview,
-                                            contentDescription = null,
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop,
+                                            blur = uiState.wallpaperBlur,
+                                            dim = uiState.wallpaperDim,
+                                            opacity = uiState.wallpaperOpacity,
+                                            cropScale = uiState.wallpaperCropScale,
+                                            positionX = uiState.wallpaperPositionX,
+                                            positionY = uiState.wallpaperPositionY,
+                                            isDark = isDark,
                                         )
                                     } else {
                                         Box(
@@ -348,78 +354,75 @@ fun ColorPaletteScreenMiuix(
                                     }
                                 }
 
-                                var blurValue by remember(uiState.wallpaperBlur) {
-                                    mutableFloatStateOf(uiState.wallpaperBlur)
-                                }
-                                ArrowPreference(
-                                    title = stringResource(id = R.string.settings_wallpaper_blur),
-                                    summary = stringResource(id = R.string.settings_wallpaper_blur_summary),
-                                    startAction = {
-                                        Icon(
-                                            Icons.Rounded.BlurOn,
-                                            modifier = Modifier.padding(end = 6.dp),
-                                            contentDescription = stringResource(id = R.string.settings_wallpaper_blur),
-                                            tint = colorScheme.onBackground
-                                        )
-                                    },
-                                    endActions = {
-                                        Text(
-                                            text = "${blurValue.toInt()}",
-                                            color = colorScheme.onSurfaceVariantActions,
-                                        )
-                                    },
-                                    onClick = { showBlurSlider.value = !showBlurSlider.value },
-                                    holdDownState = showBlurSlider.value,
-                                    bottomAction = {
-                                        Slider(
-                                            value = blurValue,
-                                            onValueChange = { blurValue = it },
-                                            onValueChangeFinished = {
-                                                actions.onSetWallpaperBlur(blurValue)
-                                            },
-                                            valueRange = 0f..24f,
-                                            showKeyPoints = true,
-                                            keyPoints = listOf(0f, 6f, 12f, 18f, 24f),
-                                            hapticEffect = SliderDefaults.SliderHapticEffect.Step,
-                                        )
-                                    },
+                                WallpaperSliderPreference(
+                                    icon = Icons.Rounded.BlurOn,
+                                    title = stringResource(R.string.settings_wallpaper_blur),
+                                    summary = stringResource(R.string.settings_wallpaper_blur_summary),
+                                    value = uiState.wallpaperBlur,
+                                    valueRange = 0f..24f,
+                                    keyPoints = listOf(0f, 6f, 12f, 18f, 24f),
+                                    valueLabel = { it.toInt().toString() },
+                                    onValueChangeFinished = actions.onSetWallpaperBlur,
                                 )
-
-                                var dimValue by remember(uiState.wallpaperDim) {
-                                    mutableFloatStateOf(uiState.wallpaperDim)
-                                }
-                                ArrowPreference(
-                                    title = stringResource(id = R.string.settings_wallpaper_dim),
-                                    summary = stringResource(id = R.string.settings_wallpaper_dim_summary),
-                                    startAction = {
-                                        Icon(
-                                            Icons.Rounded.WaterDrop,
-                                            modifier = Modifier.padding(end = 6.dp),
-                                            contentDescription = stringResource(id = R.string.settings_wallpaper_dim),
-                                            tint = colorScheme.onBackground
-                                        )
-                                    },
-                                    endActions = {
-                                        Text(
-                                            text = "${(dimValue * 100).toInt()}%",
-                                            color = colorScheme.onSurfaceVariantActions,
-                                        )
-                                    },
-                                    onClick = { showDimSlider.value = !showDimSlider.value },
-                                    holdDownState = showDimSlider.value,
-                                    bottomAction = {
-                                        Slider(
-                                            value = dimValue,
-                                            onValueChange = { dimValue = it },
-                                            onValueChangeFinished = {
-                                                actions.onSetWallpaperDim(dimValue)
-                                            },
-                                            valueRange = 0f..0.8f,
-                                            showKeyPoints = true,
-                                            keyPoints = listOf(0f, 0.2f, 0.4f, 0.6f, 0.8f),
-                                            hapticEffect = SliderDefaults.SliderHapticEffect.Step,
-                                        )
-                                    },
+                                WallpaperSliderPreference(
+                                    icon = Icons.Rounded.WaterDrop,
+                                    title = stringResource(R.string.settings_wallpaper_dim),
+                                    summary = stringResource(R.string.settings_wallpaper_dim_summary),
+                                    value = uiState.wallpaperDim,
+                                    valueRange = 0f..0.8f,
+                                    keyPoints = listOf(0f, 0.2f, 0.4f, 0.6f, 0.8f),
+                                    valueLabel = { "${(it * 100).toInt()}%" },
+                                    onValueChangeFinished = actions.onSetWallpaperDim,
+                                )
+                                WallpaperSliderPreference(
+                                    icon = Icons.Rounded.WaterDrop,
+                                    title = stringResource(R.string.settings_wallpaper_opacity),
+                                    summary = stringResource(R.string.settings_wallpaper_opacity_summary),
+                                    value = uiState.wallpaperOpacity,
+                                    valueRange = 0f..1f,
+                                    keyPoints = listOf(0f, 0.25f, 0.5f, 0.75f, 1f),
+                                    valueLabel = { "${(it * 100).toInt()}%" },
+                                    onValueChangeFinished = actions.onSetWallpaperOpacity,
+                                )
+                                WallpaperSliderPreference(
+                                    icon = Icons.Rounded.DesignServices,
+                                    title = stringResource(R.string.settings_wallpaper_ui_opacity),
+                                    summary = stringResource(R.string.settings_wallpaper_ui_opacity_summary),
+                                    value = uiState.wallpaperUiOpacity,
+                                    valueRange = 0f..1f,
+                                    keyPoints = listOf(0f, 0.25f, 0.5f, 0.75f, 1f),
+                                    valueLabel = { "${(it * 100).toInt()}%" },
+                                    onValueChangeFinished = actions.onSetWallpaperUiOpacity,
+                                )
+                                WallpaperSliderPreference(
+                                    icon = Icons.Rounded.AspectRatio,
+                                    title = stringResource(R.string.settings_wallpaper_crop_scale),
+                                    summary = stringResource(R.string.settings_wallpaper_crop_scale_summary),
+                                    value = uiState.wallpaperCropScale,
+                                    valueRange = 1f..3f,
+                                    keyPoints = listOf(1f, 1.5f, 2f, 2.5f, 3f),
+                                    valueLabel = { "${(it * 100).toInt()}%" },
+                                    onValueChangeFinished = actions.onSetWallpaperCropScale,
+                                )
+                                WallpaperSliderPreference(
+                                    icon = Icons.Rounded.Pin,
+                                    title = stringResource(R.string.settings_wallpaper_position_x),
+                                    summary = stringResource(R.string.settings_wallpaper_position_x_summary),
+                                    value = uiState.wallpaperPositionX,
+                                    valueRange = -1f..1f,
+                                    keyPoints = listOf(-1f, -0.5f, 0f, 0.5f, 1f),
+                                    valueLabel = { "${(it * 100).toInt()}%" },
+                                    onValueChangeFinished = actions.onSetWallpaperPositionX,
+                                )
+                                WallpaperSliderPreference(
+                                    icon = Icons.Rounded.Pin,
+                                    title = stringResource(R.string.settings_wallpaper_position_y),
+                                    summary = stringResource(R.string.settings_wallpaper_position_y_summary),
+                                    value = uiState.wallpaperPositionY,
+                                    valueRange = -1f..1f,
+                                    keyPoints = listOf(-1f, -0.5f, 0f, 0.5f, 1f),
+                                    valueLabel = { "${(it * 100).toInt()}%" },
+                                    onValueChangeFinished = actions.onSetWallpaperPositionY,
                                 )
 
                                 val removeWallpaper = stringResource(id = R.string.settings_wallpaper_remove)
@@ -602,6 +605,53 @@ fun ColorPaletteScreenMiuix(
     }
 }
 
+
+@Composable
+private fun WallpaperSliderPreference(
+    icon: ImageVector,
+    title: String,
+    summary: String,
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    keyPoints: List<Float>,
+    valueLabel: (Float) -> String,
+    onValueChangeFinished: (Float) -> Unit,
+) {
+    var expanded by rememberSaveable(title) { mutableStateOf(false) }
+    var sliderValue by remember(value) { mutableFloatStateOf(value) }
+    ArrowPreference(
+        title = title,
+        summary = summary,
+        startAction = {
+            Icon(
+                imageVector = icon,
+                modifier = Modifier.padding(end = 6.dp),
+                contentDescription = title,
+                tint = colorScheme.onBackground,
+            )
+        },
+        endActions = {
+            Text(
+                text = valueLabel(sliderValue),
+                color = colorScheme.onSurfaceVariantActions,
+            )
+        },
+        onClick = { expanded = !expanded },
+        holdDownState = expanded,
+        bottomAction = {
+            Slider(
+                value = sliderValue,
+                onValueChange = { sliderValue = it },
+                onValueChangeFinished = { onValueChangeFinished(sliderValue) },
+                valueRange = valueRange,
+                showKeyPoints = true,
+                keyPoints = keyPoints,
+                hapticEffect = SliderDefaults.SliderHapticEffect.Step,
+            )
+        },
+    )
+}
+
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 private fun ThemePreviewCardMiuix(
@@ -615,6 +665,11 @@ private fun ThemePreviewCardMiuix(
     wallpaperPath: String? = null,
     wallpaperBlur: Float = 0f,
     wallpaperDim: Float = 0f,
+    wallpaperOpacity: Float = 1f,
+    wallpaperUiOpacity: Float = 1f,
+    wallpaperCropScale: Float = 1f,
+    wallpaperPositionX: Float = 0f,
+    wallpaperPositionY: Float = 0f,
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.toFloat()
@@ -632,15 +687,18 @@ private fun ThemePreviewCardMiuix(
         specVersion = effectiveSpec,
     )
 
+    val surfaceAlpha = if (wallpaperPath != null) wallpaperUiOpacity.coerceIn(0f, 1f) else 1f
     val bgColor = if (miuixMonet) dynamicCs.background else colorScheme.surface
     val textColor = if (miuixMonet) dynamicCs.onSurface else colorScheme.onBackground
     val accentCardColor = when {
         miuixMonet -> dynamicCs.secondaryContainer
         isDark -> Color(0xFF1A3825)
         else -> Color(0xFFDFFAE4)
-    }
-    val cardColor = if (miuixMonet) dynamicCs.surfaceContainerHighest else colorScheme.surfaceVariant
-    val navBarColor = if (miuixMonet) dynamicCs.surfaceContainer else colorScheme.surface
+    }.copy(alpha = surfaceAlpha)
+    val cardColor = (if (miuixMonet) dynamicCs.surfaceContainerHighest else colorScheme.surfaceVariant)
+        .copy(alpha = surfaceAlpha)
+    val navBarColor = (if (miuixMonet) dynamicCs.surfaceContainer else colorScheme.surface)
+        .copy(alpha = surfaceAlpha)
     val iconColor = if (miuixMonet) dynamicCs.primary else colorScheme.primary
     val navSelectedColor = colorScheme.onSurfaceContainer
     val navUnselectedColor = colorScheme.onSurfaceContainer.copy(alpha = 0.5f)
@@ -660,21 +718,15 @@ private fun ThemePreviewCardMiuix(
                 .border(1.dp, colorScheme.outline, RoundedCornerShape(20.dp))
         ) {
             if (wallpaperPreview != null) {
-                Image(
+                WallpaperImage(
                     bitmap = wallpaperPreview,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(wallpaperBlur.dp),
-                    contentScale = ContentScale.Crop,
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            if (isDark) Color.Black.copy(alpha = wallpaperDim)
-                            else Color.White.copy(alpha = wallpaperDim)
-                        )
+                    blur = wallpaperBlur,
+                    dim = wallpaperDim,
+                    opacity = wallpaperOpacity,
+                    cropScale = wallpaperCropScale,
+                    positionX = wallpaperPositionX,
+                    positionY = wallpaperPositionY,
+                    isDark = isDark,
                 )
             } else {
                 Box(

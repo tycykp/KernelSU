@@ -174,6 +174,10 @@ class MainActivity : ComponentActivity() {
                             path = wallpaperPath,
                             blur = appSettings.wallpaperBlur,
                             dim = appSettings.wallpaperDim,
+                            opacity = appSettings.wallpaperOpacity,
+                            cropScale = appSettings.wallpaperCropScale,
+                            positionX = appSettings.wallpaperPositionX,
+                            positionY = appSettings.wallpaperPositionY,
                             isDark = darkMode,
                         )
                     }

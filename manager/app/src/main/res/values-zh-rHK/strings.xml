@@ -162,6 +162,16 @@
     <string name="settings_wallpaper_blur_summary">套用於壁紙嘅模糊半徑</string>
     <string name="settings_wallpaper_dim">變暗</string>
     <string name="settings_wallpaper_dim_summary">變暗或提亮壁紙，令內容更易讀</string>
+    <string name="settings_wallpaper_opacity">圖片透明度</string>
+    <string name="settings_wallpaper_opacity_summary">調整壁紙圖片嘅可見程度</string>
+    <string name="settings_wallpaper_ui_opacity">應用程式 UI 透明度</string>
+    <string name="settings_wallpaper_ui_opacity_summary">調整卡片同其他應用程式介面嘅透明度</string>
+    <string name="settings_wallpaper_crop_scale">裁切縮放</string>
+    <string name="settings_wallpaper_crop_scale_summary">放大圖片以裁切更多壁紙內容</string>
+    <string name="settings_wallpaper_position_x">水平位置</string>
+    <string name="settings_wallpaper_position_x_summary">將裁切焦點由左邊（-）移到右邊（+）</string>
+    <string name="settings_wallpaper_position_y">垂直位置</string>
+    <string name="settings_wallpaper_position_y_summary">將裁切焦點由頂部（-）移到底部（+）</string>
     <string name="settings_key_color">主題色</string>
     <string name="group_contains_apps">內含 %d 個 App</string>
     <string name="app_profile_affects_following_apps">受影響 App 如下</string>

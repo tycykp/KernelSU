@@ -49,6 +49,11 @@ class SettingsViewModel(
             val wallpaperPath = repo.wallpaperPath
             val wallpaperBlur = repo.wallpaperBlur
             val wallpaperDim = repo.wallpaperDim
+            val wallpaperOpacity = repo.wallpaperOpacity
+            val wallpaperUiOpacity = repo.wallpaperUiOpacity
+            val wallpaperCropScale = repo.wallpaperCropScale
+            val wallpaperPositionX = repo.wallpaperPositionX
+            val wallpaperPositionY = repo.wallpaperPositionY
             val isLkmMode = repo.isLkmMode()
 
             // Async loading for natives/features
@@ -91,6 +96,11 @@ class SettingsViewModel(
                     wallpaperPath = wallpaperPath,
                     wallpaperBlur = wallpaperBlur,
                     wallpaperDim = wallpaperDim,
+                    wallpaperOpacity = wallpaperOpacity,
+                    wallpaperUiOpacity = wallpaperUiOpacity,
+                    wallpaperCropScale = wallpaperCropScale,
+                    wallpaperPositionX = wallpaperPositionX,
+                    wallpaperPositionY = wallpaperPositionY,
                     suCompatStatus = suCompatStatus,
                     suCompatMode = suCompatMode,
                     isSuEnabled = isSuEnabled,
@@ -206,8 +216,39 @@ class SettingsViewModel(
     }
 
     fun setWallpaperDim(dim: Float) {
-        repo.wallpaperDim = dim
-        _uiState.update { it.copy(wallpaperDim = dim) }
+        val value = dim.coerceIn(0f, 0.8f)
+        repo.wallpaperDim = value
+        _uiState.update { it.copy(wallpaperDim = value) }
+    }
+
+    fun setWallpaperOpacity(opacity: Float) {
+        val value = opacity.coerceIn(0f, 1f)
+        repo.wallpaperOpacity = value
+        _uiState.update { it.copy(wallpaperOpacity = value) }
+    }
+
+    fun setWallpaperUiOpacity(opacity: Float) {
+        val value = opacity.coerceIn(0f, 1f)
+        repo.wallpaperUiOpacity = value
+        _uiState.update { it.copy(wallpaperUiOpacity = value) }
+    }
+
+    fun setWallpaperCropScale(scale: Float) {
+        val value = scale.coerceIn(1f, 3f)
+        repo.wallpaperCropScale = value
+        _uiState.update { it.copy(wallpaperCropScale = value) }
+    }
+
+    fun setWallpaperPositionX(position: Float) {
+        val value = position.coerceIn(-1f, 1f)
+        repo.wallpaperPositionX = value
+        _uiState.update { it.copy(wallpaperPositionX = value) }
+    }
+
+    fun setWallpaperPositionY(position: Float) {
+        val value = position.coerceIn(-1f, 1f)
+        repo.wallpaperPositionY = value
+        _uiState.update { it.copy(wallpaperPositionY = value) }
     }
 
     fun setEnablePredictiveBack(enabled: Boolean) {

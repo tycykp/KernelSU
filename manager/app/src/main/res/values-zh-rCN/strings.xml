@@ -204,6 +204,16 @@
     <string name="settings_wallpaper_blur_summary">应用于壁纸的模糊半径</string>
     <string name="settings_wallpaper_dim">压暗</string>
     <string name="settings_wallpaper_dim_summary">压暗或提亮壁纸，让内容更易读</string>
+    <string name="settings_wallpaper_opacity">图片透明度</string>
+    <string name="settings_wallpaper_opacity_summary">调整壁纸图片的可见程度</string>
+    <string name="settings_wallpaper_ui_opacity">应用 UI 透明度</string>
+    <string name="settings_wallpaper_ui_opacity_summary">调整卡片及其他应用界面的透明度</string>
+    <string name="settings_wallpaper_crop_scale">裁切缩放</string>
+    <string name="settings_wallpaper_crop_scale_summary">放大图片以裁切更多壁纸内容</string>
+    <string name="settings_wallpaper_position_x">水平位置</string>
+    <string name="settings_wallpaper_position_x_summary">将裁切焦点从左侧（-）移动到右侧（+）</string>
+    <string name="settings_wallpaper_position_y">垂直位置</string>
+    <string name="settings_wallpaper_position_y_summary">将裁切焦点从顶部（-）移动到底部（+）</string>
     <string name="color_blue">蓝色</string>
     <string name="color_red">红色</string>
     <string name="color_green">绿色</string>

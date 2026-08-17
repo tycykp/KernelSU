@@ -12,6 +12,11 @@ interface SettingsRepository {
     var wallpaperPath: String
     var wallpaperBlur: Float
     var wallpaperDim: Float
+    var wallpaperOpacity: Float
+    var wallpaperUiOpacity: Float
+    var wallpaperCropScale: Float
+    var wallpaperPositionX: Float
+    var wallpaperPositionY: Float
     var enablePredictiveBack: Boolean
     var enableBlur: Boolean
     var enableFloatingBottomBar: Boolean

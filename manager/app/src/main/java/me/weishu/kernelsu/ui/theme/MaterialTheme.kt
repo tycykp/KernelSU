@@ -38,7 +38,13 @@ fun MaterialKernelSUTheme(
         }
     }
 
-    val animatedColorScheme = colorScheme.animateAsState()
+    val wallpaperEnabled = LocalWallpaperEnabled.current
+    val themedColorScheme = if (wallpaperEnabled) {
+        colorScheme.withWallpaperSurfaceOpacity(appSettings.wallpaperUiOpacity)
+    } else {
+        colorScheme
+    }
+    val animatedColorScheme = themedColorScheme.animateAsState()
 
     MaterialExpressiveTheme(
         colorScheme = animatedColorScheme,

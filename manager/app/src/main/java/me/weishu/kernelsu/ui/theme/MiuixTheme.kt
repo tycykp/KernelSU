@@ -73,9 +73,14 @@ fun MiuixKernelSUTheme(
         controller = controller,
         content = {
             val colors = if (wallpaperEnabled) {
+                val alpha = appSettings.wallpaperUiOpacity.coerceIn(0f, 1f)
                 MiuixTheme.colorScheme.copy(
                     surface = Color.Transparent,
                     background = Color.Transparent,
+                    surfaceVariant = MiuixTheme.colorScheme.surfaceVariant.copy(alpha = alpha),
+                    surfaceContainer = MiuixTheme.colorScheme.surfaceContainer.copy(alpha = alpha),
+                    surfaceContainerHigh = MiuixTheme.colorScheme.surfaceContainerHigh.copy(alpha = alpha),
+                    surfaceContainerHighest = MiuixTheme.colorScheme.surfaceContainerHighest.copy(alpha = alpha),
                 )
             } else {
                 MiuixTheme.colorScheme

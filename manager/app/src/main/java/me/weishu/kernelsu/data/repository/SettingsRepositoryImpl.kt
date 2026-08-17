@@ -71,7 +71,27 @@ class SettingsRepositoryImpl : SettingsRepository {
 
     override var wallpaperDim: Float
         get() = prefs.getFloat("wallpaper_dim", 0.4f)
-        set(value) = prefs.edit { putFloat("wallpaper_dim", value) }
+        set(value) = prefs.edit { putFloat("wallpaper_dim", value.coerceIn(0f, 0.8f)) }
+
+    override var wallpaperOpacity: Float
+        get() = prefs.getFloat("wallpaper_opacity", 1f)
+        set(value) = prefs.edit { putFloat("wallpaper_opacity", value.coerceIn(0f, 1f)) }
+
+    override var wallpaperUiOpacity: Float
+        get() = prefs.getFloat("wallpaper_ui_opacity", 1f)
+        set(value) = prefs.edit { putFloat("wallpaper_ui_opacity", value.coerceIn(0f, 1f)) }
+
+    override var wallpaperCropScale: Float
+        get() = prefs.getFloat("wallpaper_crop_scale", 1f)
+        set(value) = prefs.edit { putFloat("wallpaper_crop_scale", value.coerceIn(1f, 3f)) }
+
+    override var wallpaperPositionX: Float
+        get() = prefs.getFloat("wallpaper_position_x", 0f)
+        set(value) = prefs.edit { putFloat("wallpaper_position_x", value.coerceIn(-1f, 1f)) }
+
+    override var wallpaperPositionY: Float
+        get() = prefs.getFloat("wallpaper_position_y", 0f)
+        set(value) = prefs.edit { putFloat("wallpaper_position_y", value.coerceIn(-1f, 1f)) }
 
     override var enablePredictiveBack: Boolean
         get() = prefs.getBoolean("enable_predictive_back", false)

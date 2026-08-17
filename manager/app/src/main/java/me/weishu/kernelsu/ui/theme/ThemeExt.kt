@@ -25,6 +25,22 @@ fun ColorScheme.amoledBackground(amoled: Boolean): ColorScheme =
         surfaceContainerHighest = Color.Black,
     )
 
+fun ColorScheme.withWallpaperSurfaceOpacity(opacity: Float): ColorScheme {
+    val alpha = opacity.coerceIn(0f, 1f)
+    return copy(
+        background = Color.Transparent,
+        surface = surface.copy(alpha = alpha),
+        surfaceVariant = surfaceVariant.copy(alpha = alpha),
+        surfaceBright = surfaceBright.copy(alpha = alpha),
+        surfaceDim = surfaceDim.copy(alpha = alpha),
+        surfaceContainerLowest = surfaceContainerLowest.copy(alpha = alpha),
+        surfaceContainerLow = surfaceContainerLow.copy(alpha = alpha),
+        surfaceContainer = surfaceContainer.copy(alpha = alpha),
+        surfaceContainerHigh = surfaceContainerHigh.copy(alpha = alpha),
+        surfaceContainerHighest = surfaceContainerHighest.copy(alpha = alpha),
+    )
+}
+
 @Composable
 fun rememberKernelSUColorScheme(
     seedColor: Color,
