@@ -49,6 +49,9 @@ data class AppSettings(
     val keyColor: Int,
     val paletteStyle: PaletteStyle,
     val colorSpec: ColorSpec.SpecVersion,
+    val wallpaperPath: String? = null,
+    val wallpaperBlur: Float = 0f,
+    val wallpaperDim: Float = 0.4f,
 )
 
 val PaletteStyle.supportsSpec2025: Boolean
@@ -95,8 +98,19 @@ object ThemeController {
         } catch (_: Exception) {
             ColorSpec.SpecVersion.SPEC_2025
         }
+        val wallpaperPath = repo.wallpaperPath.ifBlank { null }
+        val wallpaperBlur = repo.wallpaperBlur
+        val wallpaperDim = repo.wallpaperDim
 
-        return AppSettings(colorMode, keyColor, paletteStyle, colorSpec)
+        return AppSettings(
+            colorMode,
+            keyColor,
+            paletteStyle,
+            colorSpec,
+            wallpaperPath,
+            wallpaperBlur,
+            wallpaperDim,
+        )
     }
 }
 
@@ -139,3 +153,5 @@ val LocalEnableFloatingBottomBar = staticCompositionLocalOf { false }
 val LocalEnableFloatingBottomBarBlur = staticCompositionLocalOf { false }
 
 val LocalEnableNavigationBadge = staticCompositionLocalOf { true }
+
+val LocalWallpaperEnabled = staticCompositionLocalOf { false }

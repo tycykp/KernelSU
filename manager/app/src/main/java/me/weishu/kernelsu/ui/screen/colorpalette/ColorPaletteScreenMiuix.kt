@@ -3,6 +3,7 @@ package me.weishu.kernelsu.ui.screen.colorpalette
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -37,6 +38,7 @@ import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.CallToAction
 import androidx.compose.material.icons.rounded.Colorize
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DesignServices
 import androidx.compose.material.icons.rounded.Pin
 import androidx.compose.material.icons.rounded.Style
@@ -52,10 +54,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
@@ -69,7 +74,9 @@ import me.weishu.kernelsu.ui.component.bottombar.useNavigationRail
 import me.weishu.kernelsu.ui.component.miuix.ScaleDialog
 import me.weishu.kernelsu.ui.theme.LocalEnableBlur
 import me.weishu.kernelsu.ui.theme.keyColorOptions
+import me.weishu.kernelsu.ui.theme.rememberWallpaperPreview
 import me.weishu.kernelsu.ui.util.BlurredBar
+import me.weishu.kernelsu.ui.util.WallpaperUtils
 import me.weishu.kernelsu.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
@@ -101,6 +108,7 @@ fun ColorPaletteScreenMiuix(
     val backdrop = rememberBlurBackdrop(enableBlurState)
     val blurActive = backdrop != null
     val barColor = if (blurActive) Color.Transparent else colorScheme.surface
+    val context = LocalContext.current
     val uiState = state.uiState
     val currentColorMode = state.currentColorMode
     val isDark = currentColorMode.isDark || currentColorMode.isSystem && isSystemInDarkTheme()
@@ -134,6 +142,8 @@ fun ColorPaletteScreenMiuix(
         contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         val showScaleDialog = rememberSaveable { mutableStateOf(false) }
+        val showBlurSlider = rememberSaveable { mutableStateOf(false) }
+        val showDimSlider = rememberSaveable { mutableStateOf(false) }
 
         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
             LazyColumn(
@@ -156,6 +166,9 @@ fun ColorPaletteScreenMiuix(
                         enableFloatingBottomBarBlur = uiState.enableFloatingBottomBarBlur,
                         paletteStyle = state.currentPaletteStyle,
                         colorSpec = state.currentColorSpec,
+                        wallpaperPath = uiState.wallpaperPath.ifEmpty { null },
+                        wallpaperBlur = uiState.wallpaperBlur,
+                        wallpaperDim = uiState.wallpaperDim,
                     )
                     Spacer(modifier = Modifier.height(72.dp))
 
@@ -274,6 +287,157 @@ fun ColorPaletteScreenMiuix(
                                         )
                                     }
                                 }
+                            }
+                        }
+                    }
+
+                    Card(
+                        modifier = Modifier
+                            .padding(top = 12.dp)
+                            .fillMaxWidth(),
+                    ) {
+                        val wallpaperPath = uiState.wallpaperPath
+                        val wallpaperSet = wallpaperPath.isNotEmpty()
+                        val pickWallpaper = rememberWallpaperPicker(
+                            currentPath = wallpaperPath.ifEmpty { null },
+                            onSetWallpaperPath = actions.onSetWallpaperPath,
+                        )
+                        ArrowPreference(
+                            title = stringResource(id = R.string.settings_wallpaper),
+                            summary = stringResource(
+                                id = if (wallpaperSet) {
+                                    R.string.settings_wallpaper_change_summary
+                                } else {
+                                    R.string.settings_wallpaper_summary
+                                }
+                            ),
+                            startAction = {
+                                Icon(
+                                    Icons.Rounded.Wallpaper,
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    contentDescription = stringResource(id = R.string.settings_wallpaper),
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            onClick = pickWallpaper
+                        )
+
+                        AnimatedVisibility(visible = wallpaperSet) {
+                            Column {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(start = 16.dp, end = 16.dp, top = 8.dp)
+                                        .fillMaxWidth()
+                                        .height(120.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                ) {
+                                    val preview = rememberWallpaperPreview(wallpaperPath)
+                                    if (preview != null) {
+                                        Image(
+                                            bitmap = preview,
+                                            contentDescription = null,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop,
+                                        )
+                                    } else {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(colorScheme.surfaceVariant)
+                                        )
+                                    }
+                                }
+
+                                var blurValue by remember(uiState.wallpaperBlur) {
+                                    mutableFloatStateOf(uiState.wallpaperBlur)
+                                }
+                                ArrowPreference(
+                                    title = stringResource(id = R.string.settings_wallpaper_blur),
+                                    summary = stringResource(id = R.string.settings_wallpaper_blur_summary),
+                                    startAction = {
+                                        Icon(
+                                            Icons.Rounded.BlurOn,
+                                            modifier = Modifier.padding(end = 6.dp),
+                                            contentDescription = stringResource(id = R.string.settings_wallpaper_blur),
+                                            tint = colorScheme.onBackground
+                                        )
+                                    },
+                                    endActions = {
+                                        Text(
+                                            text = "${blurValue.toInt()}",
+                                            color = colorScheme.onSurfaceVariantActions,
+                                        )
+                                    },
+                                    onClick = { showBlurSlider.value = !showBlurSlider.value },
+                                    holdDownState = showBlurSlider.value,
+                                    bottomAction = {
+                                        Slider(
+                                            value = blurValue,
+                                            onValueChange = { blurValue = it },
+                                            onValueChangeFinished = {
+                                                actions.onSetWallpaperBlur(blurValue)
+                                            },
+                                            valueRange = 0f..24f,
+                                            showKeyPoints = true,
+                                            keyPoints = listOf(0f, 6f, 12f, 18f, 24f),
+                                            hapticEffect = SliderDefaults.SliderHapticEffect.Step,
+                                        )
+                                    },
+                                )
+
+                                var dimValue by remember(uiState.wallpaperDim) {
+                                    mutableFloatStateOf(uiState.wallpaperDim)
+                                }
+                                ArrowPreference(
+                                    title = stringResource(id = R.string.settings_wallpaper_dim),
+                                    summary = stringResource(id = R.string.settings_wallpaper_dim_summary),
+                                    startAction = {
+                                        Icon(
+                                            Icons.Rounded.WaterDrop,
+                                            modifier = Modifier.padding(end = 6.dp),
+                                            contentDescription = stringResource(id = R.string.settings_wallpaper_dim),
+                                            tint = colorScheme.onBackground
+                                        )
+                                    },
+                                    endActions = {
+                                        Text(
+                                            text = "${(dimValue * 100).toInt()}%",
+                                            color = colorScheme.onSurfaceVariantActions,
+                                        )
+                                    },
+                                    onClick = { showDimSlider.value = !showDimSlider.value },
+                                    holdDownState = showDimSlider.value,
+                                    bottomAction = {
+                                        Slider(
+                                            value = dimValue,
+                                            onValueChange = { dimValue = it },
+                                            onValueChangeFinished = {
+                                                actions.onSetWallpaperDim(dimValue)
+                                            },
+                                            valueRange = 0f..0.8f,
+                                            showKeyPoints = true,
+                                            keyPoints = listOf(0f, 0.2f, 0.4f, 0.6f, 0.8f),
+                                            hapticEffect = SliderDefaults.SliderHapticEffect.Step,
+                                        )
+                                    },
+                                )
+
+                                val removeWallpaper = stringResource(id = R.string.settings_wallpaper_remove)
+                                ArrowPreference(
+                                    title = removeWallpaper,
+                                    startAction = {
+                                        Icon(
+                                            Icons.Rounded.Delete,
+                                            modifier = Modifier.padding(end = 6.dp),
+                                            contentDescription = removeWallpaper,
+                                            tint = colorScheme.error
+                                        )
+                                    },
+                                    onClick = {
+                                        WallpaperUtils.deleteWallpaper(context, wallpaperPath)
+                                        actions.onSetWallpaperPath(null)
+                                    },
+                                )
                             }
                         }
                     }
@@ -448,6 +612,9 @@ private fun ThemePreviewCardMiuix(
     enableFloatingBottomBarBlur: Boolean = false,
     paletteStyle: PaletteStyle = PaletteStyle.TonalSpot,
     colorSpec: ColorSpec.SpecVersion = ColorSpec.SpecVersion.SPEC_2021,
+    wallpaperPath: String? = null,
+    wallpaperBlur: Float = 0f,
+    wallpaperDim: Float = 0f,
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.toFloat()
@@ -477,6 +644,7 @@ private fun ThemePreviewCardMiuix(
     val iconColor = if (miuixMonet) dynamicCs.primary else colorScheme.primary
     val navSelectedColor = colorScheme.onSurfaceContainer
     val navUnselectedColor = colorScheme.onSurfaceContainer.copy(alpha = 0.5f)
+    val wallpaperPreview = wallpaperPath?.let { rememberWallpaperPreview(it, 256) }
 
     Box(
         modifier = Modifier
@@ -489,9 +657,32 @@ private fun ThemePreviewCardMiuix(
                 .fillMaxWidth(0.4f)
                 .aspectRatio(screenRatio)
                 .clip(RoundedCornerShape(20.dp))
-                .background(bgColor)
                 .border(1.dp, colorScheme.outline, RoundedCornerShape(20.dp))
         ) {
+            if (wallpaperPreview != null) {
+                Image(
+                    bitmap = wallpaperPreview,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(wallpaperBlur.dp),
+                    contentScale = ContentScale.Crop,
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            if (isDark) Color.Black.copy(alpha = wallpaperDim)
+                            else Color.White.copy(alpha = wallpaperDim)
+                        )
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(bgColor)
+                )
+            }
             val content = @Composable {
                 Column {
                     Row(

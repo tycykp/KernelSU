@@ -152,6 +152,16 @@
     <string name="settings_theme_mode_system">跟隨系統</string>
     <string name="settings_theme_mode_light">淺色模式</string>
     <string name="settings_theme_mode_dark">深色模式</string>
+    <string name="settings_wallpaper">自訂壁紙</string>
+    <string name="settings_wallpaper_summary">揀一張圖片作為應用程式背景</string>
+    <string name="settings_wallpaper_change_summary">點擊更換目前壁紙圖片</string>
+    <string name="settings_wallpaper_select">選擇</string>
+    <string name="settings_wallpaper_change">更換</string>
+    <string name="settings_wallpaper_remove">移除壁紙</string>
+    <string name="settings_wallpaper_blur">模糊</string>
+    <string name="settings_wallpaper_blur_summary">套用於壁紙嘅模糊半徑</string>
+    <string name="settings_wallpaper_dim">變暗</string>
+    <string name="settings_wallpaper_dim_summary">變暗或提亮壁紙，令內容更易讀</string>
     <string name="settings_key_color">主題色</string>
     <string name="group_contains_apps">內含 %d 個 App</string>
     <string name="app_profile_affects_following_apps">受影響 App 如下</string>

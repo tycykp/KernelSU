@@ -194,6 +194,16 @@
     <string name="settings_page_scale_summary">调整全局显示比例</string>
     <string name="settings_color_spec">色彩标准</string>
     <string name="settings_color_style">色彩风格</string>
+    <string name="settings_wallpaper">自定义壁纸</string>
+    <string name="settings_wallpaper_summary">选择一张图片作为应用背景</string>
+    <string name="settings_wallpaper_change_summary">点击更换当前壁纸图片</string>
+    <string name="settings_wallpaper_select">选择</string>
+    <string name="settings_wallpaper_change">更换</string>
+    <string name="settings_wallpaper_remove">移除壁纸</string>
+    <string name="settings_wallpaper_blur">模糊</string>
+    <string name="settings_wallpaper_blur_summary">应用于壁纸的模糊半径</string>
+    <string name="settings_wallpaper_dim">压暗</string>
+    <string name="settings_wallpaper_dim_summary">压暗或提亮壁纸，让内容更易读</string>
     <string name="color_blue">蓝色</string>
     <string name="color_red">红色</string>
     <string name="color_green">绿色</string>

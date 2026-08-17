@@ -1,6 +1,7 @@
 package me.weishu.kernelsu.ui.theme
 
 import android.app.Activity
+import android.content.Context
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -66,22 +67,46 @@ fun MiuixKernelSUTheme(
         colorSpec = miuixColorSpec,
     )
 
+    // Transparent surfaces only in the main UI, where the wallpaper background is drawn.
+    val wallpaperEnabled = LocalWallpaperEnabled.current
     MiuixTheme(
         controller = controller,
         content = {
-            LaunchedEffect(darkTheme) {
-                val window = (context as? Activity)?.window ?: return@LaunchedEffect
-                WindowInsetsControllerCompat(window, window.decorView).apply {
-                    isAppearanceLightStatusBars = !darkTheme
-                    isAppearanceLightNavigationBars = !darkTheme
-                }
+            val colors = if (wallpaperEnabled) {
+                MiuixTheme.colorScheme.copy(
+                    surface = Color.Transparent,
+                    background = Color.Transparent,
+                )
+            } else {
+                MiuixTheme.colorScheme
             }
-            MonetColorsProvider.UpdateCss()
-            CompositionLocalProvider(
-                LocalContentColor provides MiuixTheme.colorScheme.onBackground,
-            ) {
-                content()
-            }
+            MiuixTheme(
+                colors = colors,
+                content = {
+                    MiuixThemeContent(context = context, darkTheme = darkTheme, content = content)
+                },
+            )
         }
     )
+}
+
+@Composable
+private fun MiuixThemeContent(
+    context: Context,
+    darkTheme: Boolean,
+    content: @Composable () -> Unit,
+) {
+    LaunchedEffect(darkTheme) {
+        val window = (context as? Activity)?.window ?: return@LaunchedEffect
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = !darkTheme
+            isAppearanceLightNavigationBars = !darkTheme
+        }
+    }
+    MonetColorsProvider.UpdateCss()
+    CompositionLocalProvider(
+        LocalContentColor provides MiuixTheme.colorScheme.onBackground,
+    ) {
+        content()
+    }
 }

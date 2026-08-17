@@ -10,6 +10,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -50,10 +51,14 @@ import androidx.compose.material.icons.filled.Brightness4
 import androidx.compose.material.icons.filled.Brightness7
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.rounded.AspectRatio
+import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DesignServices
 import androidx.compose.material.icons.rounded.Pin
 import androidx.compose.material.icons.rounded.Style
+import androidx.compose.material.icons.rounded.Wallpaper
+import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -61,6 +66,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -71,11 +77,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -97,6 +106,8 @@ import me.weishu.kernelsu.ui.component.material.expressiveTopAppBarColors
 import me.weishu.kernelsu.ui.theme.ColorMode
 import me.weishu.kernelsu.ui.theme.keyColorOptions
 import me.weishu.kernelsu.ui.theme.rememberKernelSUColorScheme
+import me.weishu.kernelsu.ui.theme.rememberWallpaperPreview
+import me.weishu.kernelsu.ui.util.WallpaperUtils
 
 @Composable
 fun ColorPaletteScreenMaterial(
@@ -105,11 +116,12 @@ fun ColorPaletteScreenMaterial(
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val uiState = state.uiState
-    val currentColorMode = state.currentColorMode
-    val currentKeyColor = uiState.keyColor
-    val colorStyle = state.currentPaletteStyle
-    val colorSpec = state.currentColorSpec
-    val haptic = LocalHapticFeedback.current
+            val currentColorMode = state.currentColorMode
+            val currentKeyColor = uiState.keyColor
+            val colorStyle = state.currentPaletteStyle
+            val colorSpec = state.currentColorSpec
+            val haptic = LocalHapticFeedback.current
+            val context = LocalContext.current
 
     ExpressiveScaffold(
         topBar = {
@@ -143,6 +155,9 @@ fun ColorPaletteScreenMaterial(
                 isAmoled = isAmoled,
                 paletteStyle = colorStyle,
                 colorSpec = colorSpec,
+                wallpaperPath = uiState.wallpaperPath.ifEmpty { null },
+                wallpaperBlur = uiState.wallpaperBlur,
+                wallpaperDim = uiState.wallpaperDim,
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -295,6 +310,187 @@ fun ColorPaletteScreenMaterial(
                 }
 
                 TonalCard(modifier = Modifier.padding(top = 4.dp)) {
+                    val wallpaperPath = uiState.wallpaperPath
+                    val wallpaperSet = wallpaperPath.isNotEmpty()
+                    val pickWallpaper = rememberWallpaperPicker(
+                        currentPath = wallpaperPath.ifEmpty { null },
+                        onSetWallpaperPath = actions.onSetWallpaperPath,
+                    )
+
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Rounded.Wallpaper,
+                                contentDescription = stringResource(id = R.string.settings_wallpaper),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.settings_wallpaper),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = stringResource(
+                                        id = if (wallpaperSet) {
+                                            R.string.settings_wallpaper_change_summary
+                                        } else {
+                                            R.string.settings_wallpaper_summary
+                                        }
+                                    ),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            TextButton(onClick = pickWallpaper) {
+                                Text(
+                                    text = stringResource(
+                                        id = if (wallpaperSet) {
+                                            R.string.settings_wallpaper_change
+                                        } else {
+                                            R.string.settings_wallpaper_select
+                                        }
+                                    )
+                                )
+                            }
+                        }
+
+                        if (wallpaperSet) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(120.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                            ) {
+                                val preview = rememberWallpaperPreview(wallpaperPath)
+                                if (preview != null) {
+                                    Image(
+                                        bitmap = preview,
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop,
+                                    )
+                                } else {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                    )
+                                }
+                            }
+
+                            var blurValue by remember(uiState.wallpaperBlur) {
+                                mutableFloatStateOf(uiState.wallpaperBlur)
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Rounded.BlurOn,
+                                    contentDescription = stringResource(id = R.string.settings_wallpaper_blur),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.settings_wallpaper_blur),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = stringResource(id = R.string.settings_wallpaper_blur_summary),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Text(
+                                    text = "${blurValue.toInt()}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Slider(
+                                value = blurValue,
+                                onValueChange = { blurValue = it },
+                                onValueChangeFinished = { actions.onSetWallpaperBlur(blurValue) },
+                                valueRange = 0f..24f,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            var dimValue by remember(uiState.wallpaperDim) {
+                                mutableFloatStateOf(uiState.wallpaperDim)
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Rounded.WaterDrop,
+                                    contentDescription = stringResource(id = R.string.settings_wallpaper_dim),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.settings_wallpaper_dim),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = stringResource(id = R.string.settings_wallpaper_dim_summary),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Text(
+                                    text = "${(dimValue * 100).toInt()}%",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Slider(
+                                value = dimValue,
+                                onValueChange = { dimValue = it },
+                                onValueChangeFinished = { actions.onSetWallpaperDim(dimValue) },
+                                valueRange = 0f..0.8f,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                TextButton(
+                                    onClick = {
+                                        WallpaperUtils.deleteWallpaper(context, wallpaperPath)
+                                        actions.onSetWallpaperPath(null)
+                                    }
+                                ) {
+                                    Text(
+                                        text = stringResource(id = R.string.settings_wallpaper_remove),
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                TonalCard(modifier = Modifier.padding(top = 4.dp)) {
                     var sliderValue by remember(uiState.pageScale) { mutableFloatStateOf(uiState.pageScale) }
 
                     Column(
@@ -356,6 +552,9 @@ private fun ThemePreviewCard(
     isAmoled: Boolean = false,
     paletteStyle: PaletteStyle = PaletteStyle.TonalSpot,
     colorSpec: ColorSpec.SpecVersion = ColorSpec.SpecVersion.SPEC_2025,
+    wallpaperPath: String? = null,
+    wallpaperBlur: Float = 0f,
+    wallpaperDim: Float = 0f,
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.toFloat()
@@ -370,16 +569,35 @@ private fun ThemePreviewCard(
         paletteStyle = paletteStyle,
         colorSpec = colorSpec,
     )
+    val wallpaperPreview = wallpaperPath?.let { rememberWallpaperPreview(it, 256) }
 
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth(0.4f)
                 .aspectRatio(screenRatio),
-            color = colorScheme.surfaceContainer,
+            color = if (wallpaperPreview != null) Color.Transparent else colorScheme.surfaceContainer,
             shape = RoundedCornerShape(20.dp),
             border = BorderStroke(1.dp, color = colorScheme.outlineVariant)
         ) {
+            if (wallpaperPreview != null) {
+                Image(
+                    bitmap = wallpaperPreview,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(wallpaperBlur.dp),
+                    contentScale = ContentScale.Crop,
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            if (isDark) Color.Black.copy(alpha = wallpaperDim)
+                            else Color.White.copy(alpha = wallpaperDim)
+                        )
+                )
+            }
             val content: @Composable ColumnScope.() -> Unit = {
                     // top bar
                     Box(

@@ -61,6 +61,18 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getString("color_spec", ColorSpec.SpecVersion.SPEC_2025.name) ?: ColorSpec.SpecVersion.SPEC_2025.name
         set(value) = prefs.edit { putString("color_spec", value) }
 
+    override var wallpaperPath: String
+        get() = prefs.getString("wallpaper_path", "") ?: ""
+        set(value) = prefs.edit { putString("wallpaper_path", value) }
+
+    override var wallpaperBlur: Float
+        get() = prefs.getFloat("wallpaper_blur", 0f)
+        set(value) = prefs.edit { putFloat("wallpaper_blur", value) }
+
+    override var wallpaperDim: Float
+        get() = prefs.getFloat("wallpaper_dim", 0.4f)
+        set(value) = prefs.edit { putFloat("wallpaper_dim", value) }
+
     override var enablePredictiveBack: Boolean
         get() = prefs.getBoolean("enable_predictive_back", false)
         set(value) = prefs.edit { putBoolean("enable_predictive_back", value) }

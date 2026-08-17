@@ -16,12 +16,14 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -35,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -47,6 +50,7 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -85,6 +89,8 @@ import me.weishu.kernelsu.ui.theme.LocalEnableBlur
 import me.weishu.kernelsu.ui.theme.LocalEnableFloatingBottomBar
 import me.weishu.kernelsu.ui.theme.LocalEnableFloatingBottomBarBlur
 import me.weishu.kernelsu.ui.theme.LocalEnableNavigationBadge
+import me.weishu.kernelsu.ui.theme.LocalWallpaperEnabled
+import me.weishu.kernelsu.ui.theme.WallpaperBackground
 import me.weishu.kernelsu.ui.util.getSuperuserCount
 import me.weishu.kernelsu.ui.util.install
 import me.weishu.kernelsu.ui.util.rememberBlurBackdrop
@@ -118,6 +124,17 @@ class MainActivity : ComponentActivity() {
             val appSettings = uiState.appSettings
             val uiMode = uiState.uiMode
             val darkMode = appSettings.colorMode.isDark || (appSettings.colorMode.isSystem && isSystemInDarkTheme())
+            val wallpaperEnabled = appSettings.wallpaperPath?.let { File(it).exists() } == true
+            val materialContainerColor = if (wallpaperEnabled) {
+                Color.Transparent
+            } else {
+                MaterialTheme.colorScheme.surfaceContainer
+            }
+            val materialContentColor = if (wallpaperEnabled) {
+                MaterialTheme.colorScheme.onSurface
+            } else {
+                contentColorFor(materialContainerColor)
+            }
 
             DisposableEffect(darkMode) {
                 enableEdgeToEdge(
@@ -148,64 +165,76 @@ class MainActivity : ComponentActivity() {
                 LocalEnableFloatingBottomBar provides uiState.enableFloatingBottomBar,
                 LocalEnableFloatingBottomBarBlur provides uiState.enableFloatingBottomBarBlur,
                 LocalEnableNavigationBadge provides uiState.enableNavigationBadge,
+                LocalWallpaperEnabled provides wallpaperEnabled,
                 LocalUiMode provides uiMode,
             ) {
-                KernelSUTheme(appSettings = appSettings, uiMode = uiMode) {
-                    IntentDispatcher(intentChannel = intentChannel)
-                    val mainScreenEntry = @Composable {
-                        MainScreen(
-                            initialPage = selectedMainPage,
-                            onPageChanged = viewModel::setSelectedMainPage,
+                Box {
+                    appSettings.wallpaperPath?.let { wallpaperPath ->
+                        WallpaperBackground(
+                            path = wallpaperPath,
+                            blur = appSettings.wallpaperBlur,
+                            dim = appSettings.wallpaperDim,
+                            isDark = darkMode,
                         )
                     }
+                    KernelSUTheme(appSettings = appSettings, uiMode = uiMode) {
+                        IntentDispatcher(intentChannel = intentChannel)
+                        val mainScreenEntry = @Composable {
+                            MainScreen(
+                                initialPage = selectedMainPage,
+                                onPageChanged = viewModel::setSelectedMainPage,
+                            )
+                        }
 
-                    val navDisplay = @Composable {
-                        NavDisplay(
-                            backStack = navigator.backStack,
-                            entryDecorators = listOf(
-                                rememberSaveableStateHolderNavEntryDecorator(),
-                                rememberViewModelStoreNavEntryDecorator()
-                            ),
-                            onBack = {
-                                when (val top = navigator.current()) {
-                                    is Route.TemplateEditor -> {
-                                        if (!top.readOnly) {
-                                            navigator.setResult("template_edit", true)
-                                        } else {
-                                            navigator.pop()
+                        val navDisplay = @Composable {
+                            NavDisplay(
+                                backStack = navigator.backStack,
+                                entryDecorators = listOf(
+                                    rememberSaveableStateHolderNavEntryDecorator(),
+                                    rememberViewModelStoreNavEntryDecorator()
+                                ),
+                                onBack = {
+                                    when (val top = navigator.current()) {
+                                        is Route.TemplateEditor -> {
+                                            if (!top.readOnly) {
+                                                navigator.setResult("template_edit", true)
+                                            } else {
+                                                navigator.pop()
+                                            }
                                         }
+
+                                        else -> navigator.pop()
                                     }
-
-                                    else -> navigator.pop()
+                                },
+                                entryProvider = entryProvider {
+                                    entry<Route.Main> { mainScreenEntry() }
+                                    entry<Route.About> { AboutScreen() }
+                                    entry<Route.Sulog> { SulogScreen() }
+                                    entry<Route.ColorPalette> { ColorPaletteScreen() }
+                                    entry<Route.AppProfileTemplate> { AppProfileTemplateScreen() }
+                                    entry<Route.TemplateEditor> { key -> TemplateEditorScreen(key.template, key.readOnly) }
+                                    entry<Route.AppProfile> { key -> AppProfileScreen(key.uid) }
+                                    entry<Route.ModuleRepo> { ModuleRepoScreen() }
+                                    entry<Route.ModuleRepoDetail> { key -> ModuleRepoDetailScreen(key.module) }
+                                    entry<Route.Install> { InstallScreen() }
+                                    entry<Route.Flash> { key -> FlashScreen(key.flashIt) }
+                                    entry<Route.ExecuteModuleAction> { key -> ExecuteModuleActionScreen(key.moduleId, key.fromShortcut) }
+                                    entry<Route.Home> { mainScreenEntry() }
+                                    entry<Route.SuperUser> { mainScreenEntry() }
+                                    entry<Route.Module> { mainScreenEntry() }
+                                    entry<Route.Settings> { mainScreenEntry() }
                                 }
-                            },
-                            entryProvider = entryProvider {
-                                entry<Route.Main> { mainScreenEntry() }
-                                entry<Route.About> { AboutScreen() }
-                                entry<Route.Sulog> { SulogScreen() }
-                                entry<Route.ColorPalette> { ColorPaletteScreen() }
-                                entry<Route.AppProfileTemplate> { AppProfileTemplateScreen() }
-                                entry<Route.TemplateEditor> { key -> TemplateEditorScreen(key.template, key.readOnly) }
-                                entry<Route.AppProfile> { key -> AppProfileScreen(key.uid) }
-                                entry<Route.ModuleRepo> { ModuleRepoScreen() }
-                                entry<Route.ModuleRepoDetail> { key -> ModuleRepoDetailScreen(key.module) }
-                                entry<Route.Install> { InstallScreen() }
-                                entry<Route.Flash> { key -> FlashScreen(key.flashIt) }
-                                entry<Route.ExecuteModuleAction> { key -> ExecuteModuleActionScreen(key.moduleId, key.fromShortcut) }
-                                entry<Route.Home> { mainScreenEntry() }
-                                entry<Route.SuperUser> { mainScreenEntry() }
-                                entry<Route.Module> { mainScreenEntry() }
-                                entry<Route.Settings> { mainScreenEntry() }
-                            }
-                        )
-                    }
+                            )
+                        }
 
-                    when (uiMode) {
-                        UiMode.Material -> androidx.compose.material3.Scaffold(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ) { navDisplay() }
+                        when (uiMode) {
+                            UiMode.Material -> androidx.compose.material3.Scaffold(
+                                containerColor = materialContainerColor,
+                                contentColor = materialContentColor,
+                            ) { navDisplay() }
 
-                        UiMode.Miuix -> Scaffold { navDisplay() }
+                            UiMode.Miuix -> Scaffold { navDisplay() }
+                        }
                     }
                 }
             }
@@ -273,6 +302,17 @@ fun MainScreen(
         NavigationBadgeState()
     }
     val uiMode = LocalUiMode.current
+    val wallpaperEnabled = LocalWallpaperEnabled.current
+    val materialContainerColor = if (wallpaperEnabled) {
+        Color.Transparent
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer
+    }
+    val materialContentColor = if (wallpaperEnabled) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        contentColorFor(materialContainerColor)
+    }
     val surfaceColor = when (uiMode) {
         UiMode.Material -> MaterialTheme.colorScheme.surface // Blur is not used in Material, this is just a placeholder
         UiMode.Miuix -> MiuixTheme.colorScheme.surface
@@ -330,7 +370,8 @@ fun MainScreen(
 
             when (uiMode) {
                 UiMode.Material -> androidx.compose.material3.Scaffold(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    containerColor = materialContainerColor,
+                    contentColor = materialContentColor,
                 ) {
                     Row {
                         SideRail(navigationBadge)
@@ -374,7 +415,8 @@ fun MainScreen(
             when (uiMode) {
                 UiMode.Material -> androidx.compose.material3.Scaffold(
                     bottomBar = bottomBar,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    containerColor = materialContainerColor,
+                    contentColor = materialContentColor,
                 ) { innerPadding ->
                     pagerContent(innerPadding.calculateBottomPadding())
                 }

@@ -144,6 +144,16 @@
     <string name="settings_theme_mode_light">淺色</string>
     <string name="settings_theme_mode_dark">深色</string>
     <string name="settings_theme_summary">選擇應用的主題模式。</string>
+    <string name="settings_wallpaper">自訂桌布</string>
+    <string name="settings_wallpaper_summary">選擇一張圖片作為應用程式背景</string>
+    <string name="settings_wallpaper_change_summary">點擊更換目前桌布圖片</string>
+    <string name="settings_wallpaper_select">選擇</string>
+    <string name="settings_wallpaper_change">更換</string>
+    <string name="settings_wallpaper_remove">移除桌布</string>
+    <string name="settings_wallpaper_blur">模糊</string>
+    <string name="settings_wallpaper_blur_summary">套用於桌布的模糊半徑</string>
+    <string name="settings_wallpaper_dim">變暗</string>
+    <string name="settings_wallpaper_dim_summary">變暗或提亮桌布，讓內容更容易閱讀</string>
     <string name="settings_sucompat">傳統 su 命令支援</string>
     <string name="settings_sucompat_summary">允許透過 /system/bin/su 獲取 Root 權限，僅對新行程生效。</string>
     <string name="settings_kernel_umount">核心處理解除掛載模組</string>

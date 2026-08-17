@@ -46,6 +46,9 @@ class SettingsViewModel(
             val enableWebDebugging = repo.enableWebDebugging
             val colorStyle = repo.colorStyle
             val colorSpec = repo.colorSpec
+            val wallpaperPath = repo.wallpaperPath
+            val wallpaperBlur = repo.wallpaperBlur
+            val wallpaperDim = repo.wallpaperDim
             val isLkmMode = repo.isLkmMode()
 
             // Async loading for natives/features
@@ -85,6 +88,9 @@ class SettingsViewModel(
                     enableWebDebugging = enableWebDebugging,
                     colorStyle = colorStyle,
                     colorSpec = colorSpec,
+                    wallpaperPath = wallpaperPath,
+                    wallpaperBlur = wallpaperBlur,
+                    wallpaperDim = wallpaperDim,
                     suCompatStatus = suCompatStatus,
                     suCompatMode = suCompatMode,
                     isSuEnabled = isSuEnabled,
@@ -187,6 +193,21 @@ class SettingsViewModel(
     fun setColorSpec(spec: String) {
         repo.colorSpec = spec
         _uiState.update { it.copy(colorSpec = spec) }
+    }
+
+    fun setWallpaperPath(path: String?) {
+        repo.wallpaperPath = path.orEmpty()
+        _uiState.update { it.copy(wallpaperPath = path.orEmpty()) }
+    }
+
+    fun setWallpaperBlur(blur: Float) {
+        repo.wallpaperBlur = blur
+        _uiState.update { it.copy(wallpaperBlur = blur) }
+    }
+
+    fun setWallpaperDim(dim: Float) {
+        repo.wallpaperDim = dim
+        _uiState.update { it.copy(wallpaperDim = dim) }
     }
 
     fun setEnablePredictiveBack(enabled: Boolean) {

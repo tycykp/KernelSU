@@ -32,12 +32,14 @@ import androidx.compose.material3.rememberWideNavigationRailState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import me.weishu.kernelsu.Natives
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.LocalMainPagerState
+import me.weishu.kernelsu.ui.theme.LocalWallpaperEnabled
 import me.weishu.kernelsu.ui.util.rootAvailable
 
 @Composable
@@ -66,7 +68,7 @@ fun NavigationRailMaterial(
         modifier = modifier.fillMaxHeight(),
         state = state,
         colors = WideNavigationRailDefaults.colors().copy(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = if (LocalWallpaperEnabled.current) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
             contentColor = MaterialTheme.colorScheme.onSurface,
         ),
         windowInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout).only(

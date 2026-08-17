@@ -223,6 +223,16 @@
     <string name="settings_page_scale_summary">Adjust the global display scale.</string>
     <string name="settings_color_spec">Color Spec</string>
     <string name="settings_color_style">Color Style</string>
+    <string name="settings_wallpaper">Custom wallpaper</string>
+    <string name="settings_wallpaper_summary">Pick an image to use as the app background.</string>
+    <string name="settings_wallpaper_change_summary">Tap to replace the current wallpaper image.</string>
+    <string name="settings_wallpaper_select">Select</string>
+    <string name="settings_wallpaper_change">Change</string>
+    <string name="settings_wallpaper_remove">Remove wallpaper</string>
+    <string name="settings_wallpaper_blur">Blur</string>
+    <string name="settings_wallpaper_blur_summary">Blur radius applied to the wallpaper.</string>
+    <string name="settings_wallpaper_dim">Dim</string>
+    <string name="settings_wallpaper_dim_summary">Darken or lighten the wallpaper to keep the content readable.</string>
     <string name="color_blue">Blue</string>
     <string name="color_red">Red</string>
     <string name="color_green">Green</string>
